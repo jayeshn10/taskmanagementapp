@@ -32,5 +32,4 @@ python manage.py runserver
 ```
 username : admin
 password : admin
-```
 
