@@ -29,8 +29,8 @@ python manage.py migrate
 python manage.py runserver
 ```
 # login Credentials
+```
 username : admin
 password : admin
 ```
-
 
