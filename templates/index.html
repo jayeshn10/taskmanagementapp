@@ -1,0 +1,222 @@
+{%load static%}
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+  
+    <title>Task Management App</title>
+    <style>
+        body{
+            background-color: #f2f0f0;
+        }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+        <div class="my-3">
+            <h1 class="text-center">Task</h1>
+        </div>  
+        <div class="mx-5" >
+            <div class="d-flex justify-content-end">
+                <button type="button" class='btn btn-info modelbtn' data-dismiss="modal">Add Task</button>
+                <button type="button" class='btn btn-secondary ml-2' id="logout">Logout</button>
+            </div>
+        </div> 
+        <div class="m-5">
+            <table class="table" style="background-color: #fff;">
+                <thead class="thead-dark">
+                  <tr>
+                    <th scope="col">Task ID</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">status</th>
+                    <th scope="col">Edit</th>
+                    <th scope="col">Delete</th>
+                  </tr>
+                </thead>
+                <tbody id="task-table">
+                </tbody>
+            </table>  
+        </div>
+    </div>
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Task</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+                <form id="taskForm">
+                    <div class="form-group">
+                      <label>Title</label>
+                      <input type="hidden" id="taskid">
+                      <input type="text" class="form-control" id="title" placeholder="Enter Title">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea class="form-control" id="description" placeholder="Enter task description"></textarea>
+                      </div>
+                      <div class="form-group">
+                        <label>Status</label>
+                        <select class="form-control" id="status">
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                          </select>
+                      </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary" form="taskForm">Save changes</button>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div class="modal fade" id="deleteTaskModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Delete Task</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+                <p>Task ID -  <span id="deltaskid"></span></p>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                <button type="submit" class="btn btn-primary" id="deletetbtn" data-mdtaskid="">Yes</button>
+            </div>
+          </div>
+        </div>
+    </div>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        if(localStorage.getItem("authenticationtoken") === null){
+            location.replace("/login")
+        }
+        // jQuery
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        function loadResults(){
+                let search_text = $('#search_text').val();
+                jQuery.ajax({url: `api/task/`,headers: {"Authorization": `token ${localStorage.getItem('authenticationtoken')}`}, success: function(data){
+                    $( "#task-table" ).html("");
+                    let result = data;
+                    result.forEach(function (arrayItem) {
+                      let title = (arrayItem.title) ? arrayItem.title.toString(): "";
+                      let taskid = (arrayItem.id) ? arrayItem.id.toString(): "";
+                      let status = (arrayItem.status) ? arrayItem.status: "";
+                      let description = (arrayItem.description) ? arrayItem.description: "";
+            
+                      $( "#task-table" ).append( "<tr> <td>"+taskid+"</td><td>"+title+"</td><td>"+status+"</td> <td><button class='btn btn-info modelbtn' type='button' data-taskid='"+taskid+"' data-title='"+title+"' data-status='"+status+"' data-description='"+description+"'  >Edit</button></td><td><button class='btn btn-danger deletetask' type='button' data-dtaskid='"+taskid+"'>Delete</button></td></tr>" );
+                    });
+                }});
+            }
+        
+            loadResults();
+       
+        $(document).ready( function () {
+            $(document).on('click','.modelbtn', function(){
+                // do something here
+                $('#exampleModal').modal('show');
+                $('#taskid').val($(this).attr("data-taskid"));
+                $('#title').val($(this).attr("data-title"));
+                $('#description').val($(this).attr("data-description"));
+                $('#status').val($(this).attr("data-status"));
+            });
+
+            $("#taskForm").submit(function( event ) {
+                event.preventDefault();
+                let id = $('#taskid').val();
+                let title = $('#title').val();
+                let description = $('#description').val();
+                let status = $('#status').val();
+                let data = {"id":id, "title":title, "description":description, "status":status};
+                
+                const csrftoken = getCookie('csrftoken');
+                let url;
+                let method;
+
+                if (id){
+                    url = `api/task/${id}`;
+                    method = 'PUT';
+                }else{
+                    url = "api/task/";
+                    method = 'POST';
+                }
+ 
+                $.ajax(url, {
+                    type: method,  // http method
+                    data: data,  // data to submit
+                    headers: {'X-CSRFToken': csrftoken, "Authorization": `token ${localStorage.getItem('authenticationtoken')}`},
+                    success: function (resdata, status, xhr) {
+                        $('#exampleModal').modal('hide');
+                        loadResults($('#currentpageinput').val());
+                    },
+                    error: function (jqXhr, textStatus, errorMessage) {
+                            $('#exampleModal').modal('hide');  
+                    }
+                });
+            });
+
+            $(document).on('click','.deletetask', function(){
+                // do something here
+                $('#deleteTaskModal').modal('show');
+                let taskid = $(this).attr("data-dtaskid")
+                $('#deletetbtn').attr("data-mdtaskid",taskid);
+                $('#deltaskid').text(taskid);
+            });
+
+            $(document).on('click','#deletetbtn', function(){
+                let taskid = $("#deletetbtn").attr("data-mdtaskid");
+                const csrftoken = getCookie('csrftoken');
+
+                $.ajax(`api/task/${taskid}`, {
+                    type: 'DELETE',  // http method
+                    headers: {'X-CSRFToken': csrftoken, "Authorization": `token ${localStorage.getItem('authenticationtoken')}`},
+                    success: function (resdata, status, xhr) {
+                        $('#deleteTaskModal').modal('hide');
+                        loadResults();
+
+                    },
+                    error: function (jqXhr, textStatus, errorMessage) {
+                            $('#deleteTaskModal').modal('hide');  
+                            alert(errorMessage);
+                    }
+                });
+               
+            });
+
+            $(document).on('click','#logout', function(){
+                localStorage.clear();
+                location.replace("/login");
+            });
+        });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Task Management App</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style type="text/css">
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #17a2b8;
+        height: 100vh;
+    }
+
+    #login .container #login-row #login-column #login-box {
+        margin-top: 100px;
+        border: 1px solid #9C9C9C;
+        background-color: #EAEAEA;
+    }
+
+    #login .container #login-row #login-column #login-box #login-form {
+        padding: 20px;
+    }
+
+    #login .container #login-row #login-column #login-box #login-form #register-link {
+        margin-top: -85px;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="login">
+        <h3 class="text-center text-white pt-5">Task Management app</h3>
+        <div class="container">
+            <div id="login-row" class="row justify-content-center align-items-center">
+                <div id="login-column" class="col-md-6">
+                    <div id="login-box" class="col-md-12">
+                        <form id="login-form" class="form">
+                            <h3 class="text-center text-info">Login</h3>
+                            <div class="form-group">
+                                <label for="loginUsername" class="text-info">Username:</label><br>
+                                <input type="text" name="loginUsername" id="loginUsername" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="loginPassword" class="text-info">Password:</label><br>
+                                <input type="Password" name="loginPassword" id="loginPassword" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <input type="submit" name="submit" class="btn btn-info btn-lg btn-block login-button" value="submit">
+                            </div>
+                            <div class="form-group">
+                                <a href="/register" class="text-info">Register user here</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        if(localStorage.getItem("authenticationtoken") !== null){
+            location.replace("/")
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        $(document).ready( function () {
+
+            $("#login-form").submit(function( event ) {
+                event.preventDefault();
+                let username = $('#loginUsername').val();
+                let password = $('#loginPassword').val();
+                let data = {"username":username, "password":password};
+                
+                const csrftoken = getCookie('csrftoken');
+                
+
+                $.ajax("/api/login/", {
+                    type: "POST",  // http method
+                    data: data,  // data to submit
+                    headers: {'X-CSRFToken': csrftoken},
+                    success: function (resdata, status, xhr) {
+                        localStorage.setItem("authenticationtoken", resdata.token);
+                        location.replace("/")
+                    },
+                    error: function (jqXhr, textStatus, errorMessage) {
+                        alert(jqXhr.responseText);
+                    }
+                });
+            });
+            
+        });
+    </script>
+</body>
+
+</html>
