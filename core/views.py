@@ -48,7 +48,6 @@ class LoginUserAPI(APIView):
                 "error":"username or password is incorrect"
             },status=status.HTTP_400_BAD_REQUEST)
 
-@login_required
 def home(request):
     return render(request,"index.html")
 
